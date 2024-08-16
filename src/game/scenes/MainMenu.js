@@ -3,8 +3,6 @@ import { Scene } from 'phaser';
 
 export class MainMenu extends Scene
 {
-    logoTween;
-
     constructor ()
     {
         super('MainMenu');
@@ -12,13 +10,11 @@ export class MainMenu extends Scene
 
     create ()
     {
-        this.add.image(512, 384, 'background');
+        this.add.image(240, 240, 'background');
 
-        this.logo = this.add.image(512, 300, 'logo').setDepth(100);
-
-        this.add.text(512, 460, 'Main Menu', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
+        this.add.text(240, 240, 'BattleGo', {
+            fontFamily: 'Helvetica', fontSize: 38, color: '#ffffff',
+            stroke: '#000000', strokeThickness: 4,
             align: 'center'
         }).setDepth(100).setOrigin(0.5);
         
@@ -27,43 +23,6 @@ export class MainMenu extends Scene
 
     changeScene ()
     {
-        if (this.logoTween)
-        {
-            this.logoTween.stop();
-            this.logoTween = null;
-        }
-
         this.scene.start('Game');
-    }
-
-    moveLogo (vueCallback)
-    {
-        if (this.logoTween)
-        {
-            if (this.logoTween.isPlaying())
-            {
-                this.logoTween.pause();
-            }
-            else
-            {
-                this.logoTween.play();
-            }
-        }
-        else
-        {
-            this.logoTween = this.tweens.add({
-                targets: this.logo,
-                x: { value: 750, duration: 3000, ease: 'Back.easeInOut' },
-                y: { value: 80, duration: 1500, ease: 'Sine.easeOut' },
-                yoyo: true,
-                repeat: -1,
-                onUpdate: () => {
-                    vueCallback({
-                        x: Math.floor(this.logo.x),
-                        y: Math.floor(this.logo.y)
-                    });
-                }
-            });
-        }
     }
 }
