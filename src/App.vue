@@ -1,5 +1,4 @@
 <script setup>
-import Phaser from 'phaser';
 import { ref, toRaw } from 'vue';
 import PhaserGame from './game/PhaserGame.vue';
 
@@ -20,16 +19,10 @@ const changeScene = () => {
 
 //  This event is emitted from the PhaserGame component:
 const currentScene = (scene) => {
-
-
+    console.log("scene", scene);
 }
 </script>
 
 <template>
     <PhaserGame ref="phaserRef" @current-active-scene="currentScene" />
-    <div>
-        <div>
-            <button class="button" @click="changeScene">Change Scene</button>
-        </div>
-    </div>
 </template>

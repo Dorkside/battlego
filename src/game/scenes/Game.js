@@ -2,6 +2,13 @@ import { EventBus } from '../EventBus'
 import { Scene } from 'phaser'
 
 export class Game extends Scene {
+  gridSize = 5
+  cellSize = 32
+  offsetX = 0
+  offsetY = 0
+  borderThickness = 2
+  borderColor = 0x000000
+
   constructor() {
     super('Game')
   }
@@ -18,16 +25,10 @@ export class Game extends Scene {
     const background = this.add.tilemap('floors')
     const tileset = background.addTilesetImage('floors', 'floors')
 
-    this.layer = background.createLayer('Tile Layer 1', tileset, 0, 0)
-
-    this.currentPlayer = 'black'
-
-    this.gridSize = 5
-    this.cellSize = 32
     this.offsetX = (this.sys.game.config.width - this.gridSize * this.cellSize) / 2
     this.offsetY = (this.sys.game.config.height - this.gridSize * this.cellSize) / 2
-    this.borderThickness = 2
-    this.borderColor = 0x000000 // Black color
+
+    this.layer = background.createLayer('Tile Layer 1', tileset, 0, 0)
 
     this.graphics = this.add.graphics()
     this.gridState = Array(this.gridSize)
@@ -37,7 +38,37 @@ export class Game extends Scene {
     this.drawGrid()
     this.initCells()
 
+    EventBus.on('current-grid-state', (gridState) => {
+      this.graphics.clear()
+      this.drawGrid()
+      this.drawState(gridState)
+    })
+
     EventBus.emit('current-scene-ready', this)
+  }
+
+  initCells() {
+    for (let i = 0; i < this.gridSize; i++) {
+      for (let j = 0; j < this.gridSize; j++) {
+        const x = this.offsetX + i * this.cellSize
+        const y = this.offsetY + j * this.cellSize
+
+        const cell = this.add
+          .rectangle(
+            x + this.cellSize / 2,
+            y + this.cellSize / 2,
+            this.cellSize,
+            this.cellSize,
+            0x000000,
+            0
+          )
+          .setInteractive() // Transparent fill
+
+        cell.on('pointerdown', () => {
+          EventBus.emit('player-action', { action: { x: i, y: j } })
+        })
+      }
+    }
   }
 
   drawGrid() {
@@ -60,59 +91,20 @@ export class Game extends Scene {
     this.graphics.strokePath()
   }
 
-  initCells() {
+  drawState(gridState) {
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
-        const x = this.offsetX + i * this.cellSize
-        const y = this.offsetY + j * this.cellSize
+        const x = this.offsetX + j * this.cellSize
+        const y = this.offsetY + i * this.cellSize
 
-        const cell = this.add
-          .rectangle(
-            x + this.cellSize / 2,
-            y + this.cellSize / 2,
-            this.cellSize,
-            this.cellSize,
-            0x000000,
-            0
-          )
-          .setInteractive() // Transparent fill
-
-        cell.on('pointerdown', () => {
-          // Check if the cell is already occupied
-          if (this.gridState[j][i] !== null) {
-            return // Cell is occupied, do nothing
-          }
-
-          EventBus.emit('player-action', {player: this.currentPlayer, action: {x: i, y: j}})
-
-          // Update the grid state
-          this.gridState[j][i] = this.currentPlayer
-
-          this.graphics.clear()
-          this.drawGrid()
-          this.drawState()
-
-          // Toggle the current player
-          this.currentPlayer = this.currentPlayer === 'black' ? 'white' : 'black'
-        })
-      }
-    }
-  }
-
-  drawState() {
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const x = this.offsetX + i * this.cellSize
-        const y = this.offsetY + j * this.cellSize
-
-        if (this.gridState[j][i] === 'black') {
+        if (gridState[i][j] === 'black') {
           this.graphics.fillStyle(0x000000, 1)
           this.graphics.fillCircle(
             x + this.cellSize / 2,
             y + this.cellSize / 2,
             this.cellSize / 3.22
           )
-        } else if (this.gridState[j][i] === 'white') {
+        } else if (gridState[i][j] === 'white') {
           this.graphics.fillStyle(0xffffff, 1)
           this.graphics.fillCircle(
             x + this.cellSize / 2,
