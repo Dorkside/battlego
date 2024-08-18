@@ -3,12 +3,8 @@ import Phaser from 'phaser';
 import { ref, toRaw } from 'vue';
 import PhaserGame from './game/PhaserGame.vue';
 
-// The sprite can only be moved in the MainMenu Scene
-const canMoveSprite = ref();
-
 //  References to the PhaserGame component (game and scene are exposed)
 const phaserRef = ref();
-const spritePosition = ref({ x: 0, y: 0 });
 
 const changeScene = () => {
 

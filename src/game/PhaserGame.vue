@@ -7,7 +7,7 @@ import StartGame from './main';
 const scene = ref();
 const game = ref();
 
-const emit = defineEmits(['current-active-scene']);
+const emit = defineEmits(['current-active-scene', 'player-action']);
 
 onMounted(() => {
 
@@ -21,16 +21,19 @@ onMounted(() => {
 
     });
 
+    EventBus.on('player-action', ({player, action}) => {
+        console.log(player, action);
+    });
+
 });
 
 onUnmounted(() => {
 
-    if (game.value)
-    {
+    if (game.value) {
         game.value.destroy(true);
         game.value = null;
     }
-    
+
 });
 
 defineExpose({ scene, game });
