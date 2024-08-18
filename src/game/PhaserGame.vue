@@ -87,15 +87,80 @@ const debugState = () => {
     console.debug(libertiesState.value.map(row => row.map(cell => cell !== null ? cell : '-').join(' ')).join('\n'))
 }
 
+const getGroupLiberties = (group) => {
+    return group.map(({ x, y }) => libertiesState.value[y][x]).reduce((a, b) => a + b, 0)
+}
+
 const currentPlayer = ref('black')
+
+const switchTurn = () => {
+    currentPlayer.value = currentPlayer.value === 'white' ? 'black' : 'white'
+}
 
 const resolveAction = (action) => {
     // Check if the cell is already occupied
     if (gridState[action.y][action.x] !== null) {
         alert("Illegal move")
-        return // Cell is occupied, do nothing
+        return false;
     }
+    if (
+        (action.y < 1 || gridState[action.y - 1][action.x] !== null) &&
+        (action.y > 3 || gridState[action.y + 1][action.x] !== null) &&
+        (action.x < 1 || gridState[action.y][action.x - 1] !== null) &&
+        (action.x > 3 || gridState[action.y][action.x + 1] !== null)
+    ) {
+        const adjacentPlayerGroups = [
+            findGroup(action.x - 1, action.y, currentPlayer.value),
+            findGroup(action.x + 1, action.y, currentPlayer.value),
+            findGroup(action.x, action.y - 1, currentPlayer.value),
+            findGroup(action.x, action.y + 1, currentPlayer.value)
+        ]
+        if (adjacentPlayerGroups.every(group => {
+            if (getGroupLiberties(group) < 2) {
+                return true
+            }
+            return false;
+        })) {
+            alert("Illegal move")
+            return false;
+        }
+
+        const adjacentOpponentGroups = [
+            findGroup(action.x - 1, action.y, opponent),
+            findGroup(action.x + 1, action.y, opponent),
+            findGroup(action.x, action.y - 1, opponent),
+            findGroup(action.x, action.y + 1, opponent)
+        ]
+        if (adjacentOpponentGroups.every(group => {
+            if (getGroupLiberties(group) > 1) {
+                return true
+            }
+            return false;
+        })) {
+            alert("Illegal move")
+            return false;
+        }
+    }
+
     gridState[action.y][action.x] = currentPlayer.value
+
+    const opponent = currentPlayer.value === 'white' ? 'black' : 'white'
+
+    const adjacentOpponentGroups = [
+        findGroup(action.x - 1, action.y, opponent),
+        findGroup(action.x + 1, action.y, opponent),
+        findGroup(action.x, action.y - 1, opponent),
+        findGroup(action.x, action.y + 1, opponent)
+    ]
+
+    for (const group of adjacentOpponentGroups) {
+        if (getGroupLiberties(group) === 0) {
+            for (const { x, y } of group) {
+                gridState[y][x] = null
+            }
+        }
+    }
+    return true;
 }
 
 watch(gridState, (newGridState) => {
@@ -112,10 +177,9 @@ onMounted(() => {
     });
 
     EventBus.on('player-action', ({ action }) => {
-        resolveAction(action);
-        const group = findGroup(action.x, action.y, currentPlayer.value);
-        console.debug("group", group);
-        currentPlayer.value = currentPlayer.value === 'white' ? 'black' : 'white'
+        if (resolveAction(action)) {
+            switchTurn();
+        }
     });
 });
 
@@ -131,4 +195,13 @@ defineExpose({ scene, game });
 
 <template>
     <div id="game-container"></div>
+    <h2 class="turn">{{ currentPlayer }}'s turn</h2>
 </template>
+
+<style scoped>
+.turn {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+</style>
