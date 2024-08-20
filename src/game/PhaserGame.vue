@@ -102,11 +102,13 @@ const debugState = () => {
 }
 
 const getGroupLiberties = (group) => {
-    return group.map(({ x, y }) => libertiesState.value[y][x]).reduce((s, cell) => {
-        cell.forEach(l => s.add(l))
-        console.log(s)
-        return s
-    }, new Set()).size
+    return group
+        .map(({ x, y }) => libertiesState.value[y][x])
+        .reduce((s, cell) => {
+            cell.forEach((l) => s.add(l))
+            console.log(s)
+            return s
+        }, new Set()).size
 }
 
 const currentPlayer = ref('black')
@@ -122,7 +124,8 @@ const resolveAction = (action) => {
 
     // Check if the cell is already occupied
     if (gridState[action.y][action.x] !== null) {
-        isMoveIllegal = true
+        alert('Illegal move')
+        return false
     }
 
     if (
@@ -131,44 +134,48 @@ const resolveAction = (action) => {
         (action.x < 1 || gridState[action.y][action.x - 1] !== null) &&
         (action.x > 3 || gridState[action.y][action.x + 1] !== null)
     ) {
+        let validAdjacentPlayerGroup = true
         const adjacentPlayerGroups = [
             findGroup(action.x - 1, action.y, currentPlayer.value),
             findGroup(action.x + 1, action.y, currentPlayer.value),
             findGroup(action.x, action.y - 1, currentPlayer.value),
             findGroup(action.x, action.y + 1, currentPlayer.value)
-        ].filter(g => g.length)
+        ].filter((g) => g.length)
         if (
-            adjacentPlayerGroups.length && adjacentPlayerGroups.every((group) => {
+            adjacentPlayerGroups.length &&
+            adjacentPlayerGroups.every((group) => {
                 if (getGroupLiberties(group) < 2) {
                     return true
                 }
                 return false
             })
         ) {
-            isMoveIllegal = true
+            validAdjacentPlayerGroup = false
         }
 
+        let validAdjacentOpponentGroup = true
         const adjacentOpponentGroups = [
             findGroup(action.x - 1, action.y, opponent),
             findGroup(action.x + 1, action.y, opponent),
             findGroup(action.x, action.y - 1, opponent),
             findGroup(action.x, action.y + 1, opponent)
-        ].filter(g => g.length)
+        ].filter((g) => g.length)
         if (
-            adjacentOpponentGroups.length && adjacentOpponentGroups.every((group) => {
+            adjacentOpponentGroups.length &&
+            adjacentOpponentGroups.every((group) => {
                 if (getGroupLiberties(group) > 1) {
                     return true
                 }
                 return false
             })
         ) {
-            isMoveIllegal = true
+            validAdjacentOpponentGroup = false
         }
-    }
 
-    if (isMoveIllegal) {
-        alert('Illegal move')
-        return false
+        if (!validAdjacentPlayerGroup && !validAdjacentOpponentGroup) {
+            alert('Illegal move')
+            return false
+        }
     }
 
     gridState[action.y][action.x] = currentPlayer.value
@@ -178,7 +185,7 @@ const resolveAction = (action) => {
         findGroup(action.x + 1, action.y, opponent),
         findGroup(action.x, action.y - 1, opponent),
         findGroup(action.x, action.y + 1, opponent)
-    ].filter(g => g.length)
+    ].filter((g) => g.length)
 
     for (const group of adjacentOpponentGroups) {
         if (getGroupLiberties(group) === 0) {
