@@ -1,41 +1,43 @@
 <script setup>
-import { onMounted, onUnmounted, ref, reactive, watch, computed } from 'vue';
-import { EventBus } from './EventBus';
-import StartGame from './main';
+import { onMounted, onUnmounted, ref, reactive, watch, computed } from 'vue'
+import { EventBus } from './EventBus'
+import StartGame from './main'
 
 // Save the current scene instance
-const scene = ref();
-const game = ref();
+const scene = ref()
+const game = ref()
 
-const emit = defineEmits(['current-active-scene']);
+const emit = defineEmits(['current-active-scene'])
 
-const gridState = reactive(Array(5)
-    .fill(null)
-    .map(() => Array(5).fill(null)))
+const gridState = reactive(
+    Array(5)
+        .fill(null)
+        .map(() => Array(5).fill(null))
+)
 
 const libertiesState = computed(() => {
     const liberties = Array(5)
         .fill(null)
-        .map(() => Array(5).fill(null))
+        .map(() => Array(5).fill([]))
 
     for (let y = 0; y < 5; y++) {
         for (let x = 0; x < 5; x++) {
-            let libertiesCount = 0
+            let libertiesItems = []
             if (gridState[y][x] !== null) {
                 const p = gridState[y][x]
                 if (y > 0 && gridState[y - 1][x] === null) {
-                    libertiesCount++
+                    libertiesItems.push(`${y - 1},${x}`)
                 }
                 if (y < 4 && gridState[y + 1][x] === null) {
-                    libertiesCount++
+                    libertiesItems.push(`${y + 1},${x}`)
                 }
                 if (x > 0 && gridState[y][x - 1] === null) {
-                    libertiesCount++
+                    libertiesItems.push(`${y},${x - 1}`)
                 }
                 if (x < 4 && gridState[y][x + 1] === null) {
-                    libertiesCount++
+                    libertiesItems.push(`${y},${x + 1}`)
                 }
-                liberties[y][x] = libertiesCount
+                liberties[y][x] = libertiesItems
             }
         }
     }
@@ -74,21 +76,37 @@ const findGroup = (x, y, player) => {
 }
 
 const debugState = () => {
-    console.debug(gridState.map(row => row.map(cell => {
-        switch (cell) {
-            case 'white':
-                return 'w'
-            case 'black':
-                return 'b'
-            default:
-                return '-'
-        }
-    }).join(' ')).join('\n'))
-    console.debug(libertiesState.value.map(row => row.map(cell => cell !== null ? cell : '-').join(' ')).join('\n'))
+    console.debug(
+        gridState
+            .map((row) =>
+                row
+                    .map((cell) => {
+                        switch (cell) {
+                            case 'white':
+                                return 'w'
+                            case 'black':
+                                return 'b'
+                            default:
+                                return '-'
+                        }
+                    })
+                    .join(' ')
+            )
+            .join('\n')
+    )
+    console.debug(
+        libertiesState.value
+            .map((row) => row.map((cell) => (cell !== null ? cell.length : '-')).join(' '))
+            .join('\n')
+    )
 }
 
 const getGroupLiberties = (group) => {
-    return group.map(({ x, y }) => libertiesState.value[y][x]).reduce((a, b) => a + b, 0)
+    return group.map(({ x, y }) => libertiesState.value[y][x]).reduce((s, cell) => {
+        cell.forEach(l => s.add(l))
+        console.log(s)
+        return s
+    }, new Set()).size
 }
 
 const currentPlayer = ref('black')
@@ -98,11 +116,15 @@ const switchTurn = () => {
 }
 
 const resolveAction = (action) => {
+    const opponent = currentPlayer.value === 'white' ? 'black' : 'white'
+
+    let isMoveIllegal = false
+
     // Check if the cell is already occupied
     if (gridState[action.y][action.x] !== null) {
-        alert("Illegal move")
-        return false;
+        isMoveIllegal = true
     }
+
     if (
         (action.y < 1 || gridState[action.y - 1][action.x] !== null) &&
         (action.y > 3 || gridState[action.y + 1][action.x] !== null) &&
@@ -114,15 +136,16 @@ const resolveAction = (action) => {
             findGroup(action.x + 1, action.y, currentPlayer.value),
             findGroup(action.x, action.y - 1, currentPlayer.value),
             findGroup(action.x, action.y + 1, currentPlayer.value)
-        ]
-        if (adjacentPlayerGroups.every(group => {
-            if (getGroupLiberties(group) < 2) {
-                return true
-            }
-            return false;
-        })) {
-            alert("Illegal move")
-            return false;
+        ].filter(g => g.length)
+        if (
+            adjacentPlayerGroups.length && adjacentPlayerGroups.every((group) => {
+                if (getGroupLiberties(group) < 2) {
+                    return true
+                }
+                return false
+            })
+        ) {
+            isMoveIllegal = true
         }
 
         const adjacentOpponentGroups = [
@@ -130,28 +153,32 @@ const resolveAction = (action) => {
             findGroup(action.x + 1, action.y, opponent),
             findGroup(action.x, action.y - 1, opponent),
             findGroup(action.x, action.y + 1, opponent)
-        ]
-        if (adjacentOpponentGroups.every(group => {
-            if (getGroupLiberties(group) > 1) {
-                return true
-            }
-            return false;
-        })) {
-            alert("Illegal move")
-            return false;
+        ].filter(g => g.length)
+        if (
+            adjacentOpponentGroups.length && adjacentOpponentGroups.every((group) => {
+                if (getGroupLiberties(group) > 1) {
+                    return true
+                }
+                return false
+            })
+        ) {
+            isMoveIllegal = true
         }
     }
 
-    gridState[action.y][action.x] = currentPlayer.value
+    if (isMoveIllegal) {
+        alert('Illegal move')
+        return false
+    }
 
-    const opponent = currentPlayer.value === 'white' ? 'black' : 'white'
+    gridState[action.y][action.x] = currentPlayer.value
 
     const adjacentOpponentGroups = [
         findGroup(action.x - 1, action.y, opponent),
         findGroup(action.x + 1, action.y, opponent),
         findGroup(action.x, action.y - 1, opponent),
         findGroup(action.x, action.y + 1, opponent)
-    ]
+    ].filter(g => g.length)
 
     for (const group of adjacentOpponentGroups) {
         if (getGroupLiberties(group) === 0) {
@@ -160,37 +187,37 @@ const resolveAction = (action) => {
             }
         }
     }
-    return true;
+    return true
 }
 
 watch(gridState, (newGridState) => {
     debugState()
-    EventBus.emit('current-grid-state', newGridState);
+    EventBus.emit('current-grid-state', newGridState)
 })
 
 onMounted(() => {
-    game.value = StartGame('game-container');
+    game.value = StartGame('game-container')
 
     EventBus.on('current-scene-ready', (currentScene) => {
-        emit('current-active-scene', currentScene);
-        scene.value = currentScene;
-    });
+        emit('current-active-scene', currentScene)
+        scene.value = currentScene
+    })
 
     EventBus.on('player-action', ({ action }) => {
         if (resolveAction(action)) {
-            switchTurn();
+            switchTurn()
         }
-    });
-});
+    })
+})
 
 onUnmounted(() => {
     if (game.value) {
-        game.value.destroy(true);
-        game.value = null;
+        game.value.destroy(true)
+        game.value = null
     }
-});
+})
 
-defineExpose({ scene, game });
+defineExpose({ scene, game })
 </script>
 
 <template>
