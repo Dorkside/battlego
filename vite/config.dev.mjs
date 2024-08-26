@@ -6,15 +6,22 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: './',
-  plugins: [
-    vue(),
-  ],
+  plugins: [vue()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
   server: {
-      port: 8080
+    port: 8080
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.test.js'],
+    transformMode: {
+      web: [/\.vue$/]
+    }
   }
 })
+
