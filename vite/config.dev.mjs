@@ -14,14 +14,6 @@ export default defineConfig({
   },
   server: {
     port: 8080
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    include: ['src/**/*.test.js'],
-    transformMode: {
-      web: [/\.vue$/]
-    }
   }
 })
 
