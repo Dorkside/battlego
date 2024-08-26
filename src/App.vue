@@ -1,16 +1,20 @@
 <script setup>
-import { ref, toRaw } from 'vue';
+import { onBeforeMount, ref, toRaw } from 'vue';
 import PhaserGame from './game/PhaserGame.vue';
+import { initializeState } from './shared';
 
 //  References to the PhaserGame component (game and scene are exposed)
 const phaserRef = ref();
+
+onBeforeMount(() => {
+    initializeState();
+});
 
 const changeScene = () => {
 
     const scene = toRaw(phaserRef.value.scene);
 
-    if (scene)
-    {
+    if (scene) {
         //  Call the changeScene method defined in the `MainMenu`, `Game` and `GameOver` Scenes
         scene.changeScene();
     }
@@ -19,7 +23,7 @@ const changeScene = () => {
 
 //  This event is emitted from the PhaserGame component:
 const currentScene = (scene) => {
-    console.log("scene", scene);
+    // console.log("scene", scene);
 }
 </script>
 

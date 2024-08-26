@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-// import { checkPossibleMoves } from '@/shared'
+// import { checkPossibleMoves } from "../shared'
 
 describe('PhaserGame.vue', () => {
   const mockBoardState = [
