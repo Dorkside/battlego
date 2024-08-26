@@ -59,7 +59,13 @@ export const useGameState = defineStore('gameState', {
 
       for (let y = 0; y < 5; y++) {
         for (let x = 0; x < 5; x++) {
-          possibleMoves[y][x] = checkPossibleMoves(state.gridState, x, y, 'white')
+          possibleMoves[y][x] = checkPossibleMoves(
+            state.gridState,
+            state.libertiesState,
+            x,
+            y,
+            'white'
+          )
         }
       }
 
@@ -72,7 +78,13 @@ export const useGameState = defineStore('gameState', {
 
       for (let y = 0; y < 5; y++) {
         for (let x = 0; x < 5; x++) {
-          possibleMoves[y][x] = checkPossibleMoves(state.gridState, x, y, 'black')
+          possibleMoves[y][x] = checkPossibleMoves(
+            state.gridState,
+            state.libertiesState,
+            x,
+            y,
+            'black'
+          )
         }
       }
 

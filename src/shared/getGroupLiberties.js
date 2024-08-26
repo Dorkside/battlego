@@ -1,9 +1,7 @@
-import { state } from '../shared'
-
 // Get total liberties of a group of cells
-export const getGroupLiberties = (group) => {
+export const getGroupLiberties = (group, libertiesState) => {
   return group
-    .map(({ x, y }) => state.libertiesState[y][x])
+    .map(({ x, y }) => libertiesState[y][x])
     .reduce((s, cell) => {
       cell.forEach((l) => s.add(l))
       return s

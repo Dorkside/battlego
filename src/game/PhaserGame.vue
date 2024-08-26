@@ -38,7 +38,7 @@ const resolveAction = (action) => {
         ].filter((g) => g.length)
 
         for (const group of adjacentOpponentGroups) {
-            if (getGroupLiberties(group) === 0) {
+            if (getGroupLiberties(group, state.libertiesState) === 0) {
                 for (const { x, y } of group) {
                     state.updateGridState(x, y, null)
                 }
