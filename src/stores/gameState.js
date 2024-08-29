@@ -8,7 +8,9 @@ export const useGameState = defineStore('gameState', {
     // null means empty, 'white' means white player, 'black' means black player
     gridState: Array(5)
       .fill(null)
-      .map(() => Array(5).fill(null))
+      .map(() => Array(5).fill(null)),
+    hoveredCell: null,
+    currentPlayer: 'black'
   }),
   // could also be defined as
   // state: () => ({ count: 0 })
@@ -18,7 +20,36 @@ export const useGameState = defineStore('gameState', {
         throw new Error('Invalid value')
       }
       this.gridState[y][x] = value
-      EventBus.emit('current-grid-state', this.gridState)
+      EventBus.emit('current-grid-state', {
+        gridState: this.gridState,
+        hoveredCell: null
+      })
+    },
+    updateCurrentPlayer(player) {
+      if (player !== 'white' && player !== 'black') {
+        throw new Error('Invalid player')
+      }
+      this.currentPlayer = player
+      EventBus.emit('turn-switched', player)
+    },
+    updateHoverState(cell) {
+      let canHover = false
+      if (this.currentPlayer === 'white' && this.whitePossibleMoves[cell.y][cell.x]) {
+        canHover = true
+      }
+      if (this.currentPlayer === 'black' && this.blackPossibleMoves[cell.y][cell.x]) {
+        canHover = true
+      }
+      if (canHover === true) {
+        this.hoveredCell = cell
+      } else {
+        this.hoveredCell = null
+      }
+
+      EventBus.emit('current-grid-state', {
+        gridState: this.gridState,
+        hoveredCell: this.hoveredCell
+      })
     }
   },
   getters: {

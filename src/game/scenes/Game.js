@@ -8,6 +8,7 @@ export class Game extends Scene {
   offsetY = 0
   borderThickness = 2
   borderColor = 0x000000
+  currentPlayer = 'black'
 
   constructor() {
     super('Game')
@@ -34,17 +35,29 @@ export class Game extends Scene {
     this.gridState = Array(this.gridSize)
       .fill(null)
       .map(() => Array(this.gridSize).fill(null))
+    this.hoveredCell = null
 
     this.drawGrid()
     this.initCells()
 
-    EventBus.on('current-grid-state', (gridState) => {
-      this.graphics.clear()
-      this.drawGrid()
-      this.drawState(gridState)
+    EventBus.on('current-grid-state', ({ gridState, hoveredCell }) => {
+      this.gridState = gridState
+      this.hoveredCell = hoveredCell
     })
 
     EventBus.emit('current-scene-ready', this)
+
+    EventBus.on('turn-switched', (player) => {
+      this.currentPlayer = player
+    })
+  }
+
+  // following is the draw call for each frame
+  update() {
+    this.graphics.clear()
+    this.drawGrid()
+    this.drawState()
+    this.drawHover()
   }
 
   initCells() {
@@ -63,6 +76,10 @@ export class Game extends Scene {
             0
           )
           .setInteractive() // Transparent fill
+
+        cell.on('pointerover', () => {
+          EventBus.emit('player-hover', { x: i, y: j })
+        })
 
         cell.on('pointerdown', () => {
           EventBus.emit('player-action', { action: { x: i, y: j } })
@@ -91,20 +108,20 @@ export class Game extends Scene {
     this.graphics.strokePath()
   }
 
-  drawState(gridState) {
+  drawState() {
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
         const x = this.offsetX + j * this.cellSize
         const y = this.offsetY + i * this.cellSize
 
-        if (gridState[i][j] === 'black') {
+        if (this.gridState[i][j] === 'black') {
           this.graphics.fillStyle(0x000000, 1)
           this.graphics.fillCircle(
             x + this.cellSize / 2,
             y + this.cellSize / 2,
             this.cellSize / 3.22
           )
-        } else if (gridState[i][j] === 'white') {
+        } else if (this.gridState[i][j] === 'white') {
           this.graphics.fillStyle(0xffffff, 1)
           this.graphics.fillCircle(
             x + this.cellSize / 2,
@@ -113,6 +130,23 @@ export class Game extends Scene {
           )
         }
       }
+    }
+  }
+
+  drawHover() {
+    if (this.hoveredCell) {
+      const { x, y } = this.hoveredCell
+      if (this.currentPlayer === 'black') {
+        this.graphics.fillStyle(0x000000, 0.5)
+      }
+      if (this.currentPlayer === 'white') {
+        this.graphics.fillStyle(0xffffff, 0.5)
+      }
+      this.graphics.fillCircle(
+        this.offsetX + x * this.cellSize + this.cellSize / 2,
+        this.offsetY + y * this.cellSize + this.cellSize / 2,
+        this.cellSize / 3.22
+      )
     }
   }
 

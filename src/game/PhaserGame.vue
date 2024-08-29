@@ -11,24 +11,22 @@ const game = ref()
 
 const emit = defineEmits(['current-active-scene'])
 
-const currentPlayer = ref('black')
-
 const switchTurn = () => {
-    currentPlayer.value = currentPlayer.value === 'white' ? 'black' : 'white'
+    state.updateCurrentPlayer(state.currentPlayer === 'white' ? 'black' : 'white')
 }
 
 const resolveAction = (action) => {
     if (state) {
-        const opponent = currentPlayer.value === 'white' ? 'black' : 'white'
+        const opponent = state.currentPlayer === 'white' ? 'black' : 'white'
 
-        let isMoveIllegal = currentPlayer.value === 'black' ? !state.blackPossibleMoves[action.y][action.x] : !state.whitePossibleMoves[action.y][action.x]
+        let isMoveIllegal = state.currentPlayer === 'black' ? !state.blackPossibleMoves[action.y][action.x] : !state.whitePossibleMoves[action.y][action.x]
 
         if (isMoveIllegal) {
             alert('Illegal move')
             return false
         }
 
-        state.updateGridState(action.x, action.y, currentPlayer.value)
+        state.updateGridState(action.x, action.y, state.currentPlayer)
 
         const adjacentOpponentGroups = [
             findGroup(state.gridState, action.x - 1, action.y, opponent),
@@ -62,6 +60,10 @@ onMounted(() => {
         if (resolveAction(action)) {
             switchTurn()
         }
+    })
+
+    EventBus.on('player-hover', (cell) => {
+        state.updateHoverState(cell)
     })
 })
 
