@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { checkPossibleMoves } from '../shared'
+import { checkPossibleMoves, findGroup, getGroupLiberties } from '../shared'
 import { EventBus } from '../game/EventBus'
 
 export const useGameState = defineStore('gameState', {
@@ -12,8 +12,6 @@ export const useGameState = defineStore('gameState', {
     hoveredCell: null,
     currentPlayer: 'black'
   }),
-  // could also be defined as
-  // state: () => ({ count: 0 })
   actions: {
     updateGridState(x, y, value) {
       if (value !== null && value !== 'white' && value !== 'black') {
@@ -49,6 +47,27 @@ export const useGameState = defineStore('gameState', {
       EventBus.emit('current-grid-state', {
         gridState: this.gridState,
         hoveredCell: this.hoveredCell
+      })
+    },
+    removeDeadGroups(opponent, action) {
+      const adjacentOpponentGroups = [
+        findGroup(this.gridState, action.x - 1, action.y, opponent),
+        findGroup(this.gridState, action.x + 1, action.y, opponent),
+        findGroup(this.gridState, action.x, action.y - 1, opponent),
+        findGroup(this.gridState, action.x, action.y + 1, opponent)
+      ].filter((g) => g.length)
+
+      for (const group of adjacentOpponentGroups) {
+        if (getGroupLiberties(group, this.libertiesState) === 0) {
+          for (const { x, y } of group) {
+            this.updateGridState(x, y, null)
+          }
+        }
+      }
+
+      EventBus.emit('current-grid-state', {
+        gridState: this.gridState,
+        hoveredCell: null
       })
     }
   },

@@ -1,9 +1,50 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
+import { onMounted, onUnmounted, ref, watch, reactive, computed } from 'vue'
 import { EventBus } from './EventBus'
 import StartGame from './main'
+import { useGameState } from '../stores/gameState'
 
-import { state, findGroup, getGroupLiberties } from '../shared';
+const state = useGameState()
+
+let gameOver = ref(false)
+
+window.play = (x, y) => {
+    EventBus.emit('player-action', { action: { x, y } })
+}
+
+window.testGame = () => {
+    EventBus.emit('reset')
+    setTimeout(() => {
+        window.testGameLoop()
+    }, 1000)
+}
+
+window.testGameLoop = (step) => {
+    setTimeout(() => {
+        if (!gameOver.value) {
+            try {
+                window.play(Math.floor(Math.random() * 5), Math.floor(Math.random() * 5))
+                window.testGameLoop(100)
+            } catch (e) {
+                window.testGameLoop(0)
+            }
+        }
+    }, step ?? 100)
+}
+
+// check for win conditions
+watch(() => state.whitePossibleMoves, (newValue) => {
+    if (newValue.every(row => row.every(cell => !cell))) {
+        EventBus.emit('game-over')
+        gameOver.value = true
+    }
+})
+watch(() => state.blackPossibleMoves, (newValue) => {
+    if (newValue.every(row => row.every(cell => !cell))) {
+        EventBus.emit('game-over')
+        gameOver.value = true
+    }
+})
 
 // Save the current scene instance
 const scene = ref()
@@ -17,31 +58,14 @@ const switchTurn = () => {
 
 const resolveAction = (action) => {
     if (state) {
-        const opponent = state.currentPlayer === 'white' ? 'black' : 'white'
-
         let isMoveIllegal = state.currentPlayer === 'black' ? !state.blackPossibleMoves[action.y][action.x] : !state.whitePossibleMoves[action.y][action.x]
-
         if (isMoveIllegal) {
-            console.warn('Illegal move')
-            return false
+            throw new Error('Illegal move')
         }
 
         state.updateGridState(action.x, action.y, state.currentPlayer)
-
-        const adjacentOpponentGroups = [
-            findGroup(state.gridState, action.x - 1, action.y, opponent),
-            findGroup(state.gridState, action.x + 1, action.y, opponent),
-            findGroup(state.gridState, action.x, action.y - 1, opponent),
-            findGroup(state.gridState, action.x, action.y + 1, opponent)
-        ].filter((g) => g.length)
-
-        for (const group of adjacentOpponentGroups) {
-            if (getGroupLiberties(group, state.libertiesState) === 0) {
-                for (const { x, y } of group) {
-                    state.updateGridState(x, y, null)
-                }
-            }
-        }
+        const opponent = state.currentPlayer === 'white' ? 'black' : 'white'
+        state.removeDeadGroups(opponent, action)
         return true
     } else {
         throw new Error('State is not defined')
@@ -65,6 +89,10 @@ onMounted(() => {
     EventBus.on('player-hover', (cell) => {
         state.updateHoverState(cell)
     })
+
+    EventBus.on('reset', () => {
+        state.$reset()
+    })
 })
 
 onUnmounted(() => {
@@ -79,13 +107,21 @@ defineExpose({ scene, game })
 
 <template>
     <div id="game-container"></div>
-    <h2 class="turn">{{ currentPlayer }}'s turn</h2>
+    <!-- considering #game-container is a 480x480px container for the graphics of the game, the rest here is just static ui elements -->
+    <div class="ui">
+        <div class="player-turn">
+            <span v-if="state.currentPlayer === 'white'">White's turn</span>
+            <span v-else>Black's turn</span>
+        </div>
+        <div class="player-info">
+            <div class="player white">
+                <span>White</span>
+                <span>{{ state.whiteCaptured }}</span>
+            </div>
+            <div class="player black">
+                <span>Black</span>
+                <span>{{ state.blackCaptured }}</span>
+            </div>
+        </div>
+    </div>
 </template>
-
-<style scoped>
-.turn {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-</style>

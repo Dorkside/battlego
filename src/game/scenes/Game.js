@@ -9,6 +9,7 @@ export class Game extends Scene {
   borderThickness = 2
   borderColor = 0x000000
   currentPlayer = 'black'
+  gameOver = false
 
   constructor() {
     super('Game')
@@ -43,6 +44,14 @@ export class Game extends Scene {
     EventBus.on('current-grid-state', ({ gridState, hoveredCell }) => {
       this.gridState = gridState
       this.hoveredCell = hoveredCell
+
+      this.render()
+    })
+
+    EventBus.on('game-over', () => {
+      console.log('Game Over')
+      this.gameOver = true
+      this.render()
     })
 
     EventBus.emit('current-scene-ready', this)
@@ -53,11 +62,17 @@ export class Game extends Scene {
   }
 
   // following is the draw call for each frame
-  update() {
+  update() {}
+
+  render() {
     this.graphics.clear()
     this.drawGrid()
     this.drawState()
-    this.drawHover()
+    if (!this.gameOver) {
+      this.drawHover()
+    } else {
+      this.drawScore()
+    }
   }
 
   initCells() {
@@ -142,15 +157,101 @@ export class Game extends Scene {
     }
   }
 
+  drawPlayerTurn() {
+    this.add
+      .text(240, 20, `${this.currentPlayer}'s turn`, {
+        fontFamily: 'Helvetica',
+        fontSize: 24,
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 4,
+        align: 'center'
+      })
+      .setOrigin(0.5)
+      .setDepth(100)
+  }
+
+  drawScore() {
+    let blackScore = 0
+    let whiteScore = 0
+    for (let i = 0; i < this.gridSize; i++) {
+      for (let j = 0; j < this.gridSize; j++) {
+        const x = this.offsetX + j * this.cellSize
+        const y = this.offsetY + i * this.cellSize
+
+        this.graphics.fillStyle(0x000000, 0)
+
+        if (this.gridState[i][j] === 'black') {
+          this.graphics.fillStyle(0x000000, 1)
+          blackScore++
+        } else if (this.gridState[i][j] === 'white') {
+          this.graphics.fillStyle(0xffffff, 1)
+          whiteScore++
+        } else {
+          // check if the cell has the most black or white neighbours
+          let neighbours = []
+
+          if (i > 0 && this.gridState[i - 1][j] !== null) {
+            neighbours.push(this.gridState[i - 1][j])
+          }
+          if (i < 4 && this.gridState[i + 1][j] !== null) {
+            neighbours.push(this.gridState[i + 1][j])
+          }
+          if (j > 0 && this.gridState[i][j - 1] !== null) {
+            neighbours.push(this.gridState[i][j - 1])
+          }
+          if (j < 4 && this.gridState[i][j + 1] !== null) {
+            neighbours.push(this.gridState[i][j + 1])
+          }
+
+          const result = neighbours
+            .map((cell) => {
+              if (cell === 'black') return 1
+              if (cell === 'white') return -1
+              return 0
+            })
+            .reduce((acc, curr) => acc + curr, 0)
+
+          if (result > 0) {
+            this.graphics.fillStyle(0x000000, 1)
+            blackScore++
+          }
+          if (result < 0) {
+            this.graphics.fillStyle(0xffffff, 1)
+            whiteScore++
+          }
+        }
+
+        this.graphics.fillRect(x, y, this.cellSize, this.cellSize)
+      }
+    }
+
+    let winner = 'Nobody'
+    if (blackScore !== whiteScore) {
+      winner = blackScore > whiteScore ? 'Black' : 'White'
+    }
+    this.add
+      .text(240, 240, `${winner} wins`, {
+        fontFamily: 'Helvetica',
+        fontSize: 64,
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 8,
+        align: 'center'
+      })
+      .setOrigin(0.5)
+      .setDepth(100)
+  }
+
   drawHover() {
     if (this.hoveredCell) {
       const { x, y } = this.hoveredCell
       if (this.currentPlayer === 'black') {
         this.graphics.fillStyle(0x000000, 0.5)
-      }
-      if (this.currentPlayer === 'white') {
+      } else if (this.currentPlayer === 'white') {
         this.graphics.fillStyle(0xffffff, 0.5)
       }
+
       this.graphics.fillCircle(
         this.offsetX + x * this.cellSize + this.cellSize / 2,
         this.offsetY + y * this.cellSize + this.cellSize / 2,
@@ -158,13 +259,5 @@ export class Game extends Scene {
       )
     }
   }
-
-  changeScene() {
-    this.scene.start('GameOver')
-  }
-}
-
-window.play = (x, y) => {
-  EventBus.emit('player-action', { action: { x, y } })
 }
 
