@@ -13,10 +13,9 @@ window.play = (x, y) => {
 }
 
 window.testGame = () => {
-    EventBus.emit('reset')
     setTimeout(() => {
         window.testGameLoop()
-    }, 1000)
+    }, 100)
 }
 
 window.testGameLoop = (step) => {
@@ -88,10 +87,6 @@ onMounted(() => {
 
     EventBus.on('player-hover', (cell) => {
         state.updateHoverState(cell)
-    })
-
-    EventBus.on('reset', () => {
-        state.$reset()
     })
 })
 

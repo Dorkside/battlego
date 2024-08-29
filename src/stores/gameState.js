@@ -10,7 +10,10 @@ export const useGameState = defineStore('gameState', {
       .fill(null)
       .map(() => Array(5).fill(null)),
     hoveredCell: null,
-    currentPlayer: 'black'
+    currentPlayer: 'black',
+    whiteCaptured: 0,
+    blackCaptured: 0,
+    boardStates: [] // will be used to avoid Ko rule
   }),
   actions: {
     updateGridState(x, y, value) {
@@ -61,6 +64,11 @@ export const useGameState = defineStore('gameState', {
         if (getGroupLiberties(group, this.libertiesState) === 0) {
           for (const { x, y } of group) {
             this.updateGridState(x, y, null)
+            if (opponent === 'white') {
+              this.whiteCaptured++
+            } else {
+              this.blackCaptured++
+            }
           }
         }
       }
