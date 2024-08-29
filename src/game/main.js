@@ -11,7 +11,7 @@ const config = {
   width: 15 * 32,
   height: 15 * 32,
   parent: 'game-container',
-  backgroundColor: '#028af8',
+  backgroundColor: 'black',
   scene: [Boot, Preloader, MainMenu, Game]
 }
 

@@ -104,10 +104,6 @@ defineExpose({ scene, game })
     <div id="game-container"></div>
     <!-- considering #game-container is a 480x480px container for the graphics of the game, the rest here is just static ui elements -->
     <div class="ui">
-        <div class="player-turn">
-            <span v-if="state.currentPlayer === 'white'">White's turn</span>
-            <span v-else>Black's turn</span>
-        </div>
         <div class="player-info">
             <div class="player white">
                 <span>White</span>
@@ -120,3 +116,24 @@ defineExpose({ scene, game })
         </div>
     </div>
 </template>
+
+<style scoped>
+#game-container {
+    width: 480px;
+    height: 480px;
+    position: relative;
+    border: solid 2px white;
+}
+
+.ui {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #333;
+    color: white;
+}
+</style>

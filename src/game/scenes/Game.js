@@ -7,7 +7,7 @@ export class Game extends Scene {
   offsetX = 0
   offsetY = 0
   borderThickness = 2
-  borderColor = 0x000000
+  borderColor = 0xffffff
   currentPlayer = 'black'
   gameOver = false
 
@@ -17,9 +17,9 @@ export class Game extends Scene {
 
   preload() {
     // chargement tuiles de jeu
-    this.load.image('floors', 'assets/floors.png')
+    // this.load.image('floors', 'assets/floors.png')
     // chargement de la carte
-    this.load.tilemapTiledJSON('floors', 'assets/base.json')
+    // this.load.tilemapTiledJSON('floors', 'assets/base.json')
   }
 
   create() {
@@ -109,22 +109,22 @@ export class Game extends Scene {
     // Draw horizontal lines
     for (let i = 0; i <= this.gridSize - 1; i++) {
       const y = this.offsetY + i * this.cellSize + this.cellSize / 2
-      this.graphics.moveTo(this.offsetX + this.cellSize / 2, y)
-      this.graphics.lineTo(this.offsetX + (this.gridSize - 0.5) * this.cellSize, y)
+      this.graphics.moveTo(0, y)
+      this.graphics.lineTo(480, y)
     }
 
     // Draw vertical lines
     for (let j = 0; j <= this.gridSize - 1; j++) {
       const x = this.offsetX + j * this.cellSize + this.cellSize / 2
-      this.graphics.moveTo(x, this.offsetY + this.cellSize / 2)
-      this.graphics.lineTo(x, this.offsetY + (this.gridSize - 0.5) * this.cellSize)
+      this.graphics.moveTo(x, 0)
+      this.graphics.lineTo(x, 480)
     }
 
     this.graphics.strokePath()
 
     // Draw central hoshi
     const hoshiRadius = 4
-    this.graphics.fillStyle(0x000000, 1)
+    this.graphics.fillStyle(0xffffff, 1)
     this.graphics.fillCircle(
       this.offsetX + (this.gridSize / 2) * this.cellSize,
       this.offsetY + (this.gridSize / 2) * this.cellSize,
@@ -139,12 +139,14 @@ export class Game extends Scene {
         const y = this.offsetY + i * this.cellSize
 
         if (this.gridState[i][j] === 'black') {
-          this.graphics.fillStyle(0x000000, 1)
+          this.graphics.fillStyle(0xffffff, 1)
           this.graphics.fillCircle(
             x + this.cellSize / 2,
             y + this.cellSize / 2,
             this.cellSize / 3.22
           )
+          this.graphics.fillStyle(0x000000, 1)
+          this.graphics.fillCircle(x + this.cellSize / 2, y + this.cellSize / 2, this.cellSize / 4)
         } else if (this.gridState[i][j] === 'white') {
           this.graphics.fillStyle(0xffffff, 1)
           this.graphics.fillCircle(
@@ -247,16 +249,26 @@ export class Game extends Scene {
     if (this.hoveredCell) {
       const { x, y } = this.hoveredCell
       if (this.currentPlayer === 'black') {
+        this.graphics.fillStyle(0xffffff, 0.5)
+        this.graphics.fillCircle(
+          this.offsetX + x * this.cellSize + this.cellSize / 2,
+          this.offsetY + y * this.cellSize + this.cellSize / 2,
+          this.cellSize / 3.22
+        )
         this.graphics.fillStyle(0x000000, 0.5)
+        this.graphics.fillCircle(
+          this.offsetX + x * this.cellSize + this.cellSize / 2,
+          this.offsetY + y * this.cellSize + this.cellSize / 2,
+          this.cellSize / 4
+        )
       } else if (this.currentPlayer === 'white') {
         this.graphics.fillStyle(0xffffff, 0.5)
+        this.graphics.fillCircle(
+          this.offsetX + x * this.cellSize + this.cellSize / 2,
+          this.offsetY + y * this.cellSize + this.cellSize / 2,
+          this.cellSize / 3.22
+        )
       }
-
-      this.graphics.fillCircle(
-        this.offsetX + x * this.cellSize + this.cellSize / 2,
-        this.offsetY + y * this.cellSize + this.cellSize / 2,
-        this.cellSize / 3.22
-      )
     }
   }
 }
