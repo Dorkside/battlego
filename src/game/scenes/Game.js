@@ -164,3 +164,7 @@ export class Game extends Scene {
   }
 }
 
+window.play = (x, y) => {
+  EventBus.emit('player-action', { action: { x, y } })
+}
+
