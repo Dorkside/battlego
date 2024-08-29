@@ -9,14 +9,10 @@ export const checkPossibleMoves = (gridState, libertiesState, x, y, p) => {
   if (gridState[y][x] === null) {
     // Check if the cell has one adjacent empty cell
     if (
-      y < 1 ||
-      gridState[y - 1][x] === null ||
-      y > 3 ||
-      gridState[y + 1][x] === null ||
-      x < 1 ||
-      gridState[y][x - 1] === null ||
-      x > 3 ||
-      gridState[y][x + 1] === null
+      (y > 0 && gridState[y - 1][x] === null) ||
+      (y < 4 && gridState[y + 1][x] === null) ||
+      (x > 0 && gridState[y][x - 1] === null) ||
+      (x < 4 && gridState[y][x + 1] === null)
     ) {
       return true
     }
