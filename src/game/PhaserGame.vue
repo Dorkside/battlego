@@ -22,7 +22,7 @@ const resolveAction = (action) => {
         let isMoveIllegal = state.currentPlayer === 'black' ? !state.blackPossibleMoves[action.y][action.x] : !state.whitePossibleMoves[action.y][action.x]
 
         if (isMoveIllegal) {
-            alert('Illegal move')
+            console.warn('Illegal move')
             return false
         }
 

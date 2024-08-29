@@ -94,18 +94,27 @@ export class Game extends Scene {
     // Draw horizontal lines
     for (let i = 0; i <= this.gridSize - 1; i++) {
       const y = this.offsetY + i * this.cellSize + this.cellSize / 2
-      this.graphics.moveTo(this.offsetX, y)
-      this.graphics.lineTo(this.offsetX + this.gridSize * this.cellSize, y)
+      this.graphics.moveTo(this.offsetX + this.cellSize / 2, y)
+      this.graphics.lineTo(this.offsetX + (this.gridSize - 0.5) * this.cellSize, y)
     }
 
     // Draw vertical lines
     for (let j = 0; j <= this.gridSize - 1; j++) {
       const x = this.offsetX + j * this.cellSize + this.cellSize / 2
-      this.graphics.moveTo(x, this.offsetY)
-      this.graphics.lineTo(x, this.offsetY + this.gridSize * this.cellSize)
+      this.graphics.moveTo(x, this.offsetY + this.cellSize / 2)
+      this.graphics.lineTo(x, this.offsetY + (this.gridSize - 0.5) * this.cellSize)
     }
 
     this.graphics.strokePath()
+
+    // Draw central hoshi
+    const hoshiRadius = 4
+    this.graphics.fillStyle(0x000000, 1)
+    this.graphics.fillCircle(
+      this.offsetX + (this.gridSize / 2) * this.cellSize,
+      this.offsetY + (this.gridSize / 2) * this.cellSize,
+      hoshiRadius
+    )
   }
 
   drawState() {
