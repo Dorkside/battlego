@@ -1,6 +1,6 @@
 import { findGroup, getGroupLiberties } from './'
 
-export const checkPossibleMoves = (gridState, libertiesState, x, y, p) => {
+export const checkPossibleMoves = (gridState, libertiesState, boardStates, x, y, p) => {
   // Checkl if the cell is in bounds
   if (x < 0 || x >= 5 || y < 0 || y >= 5) {
     return false
@@ -57,7 +57,22 @@ export const checkPossibleMoves = (gridState, libertiesState, x, y, p) => {
       validAdjacentOpponentGroup = true
     }
 
-    if (validAdjacentPlayerGroup || validAdjacentOpponentGroup) {
+    const isKo = boardStates.includes(
+      gridState
+        .map((row, rowY) =>
+          row
+            .map((cell, cellX) => {
+              if (x === cellX && y === rowY) {
+                return p
+              }
+              return cell ?? ' '
+            })
+            .join('')
+        )
+        .join('')
+    )
+
+    if ((validAdjacentPlayerGroup || validAdjacentOpponentGroup) && !isKo) {
       return true
     }
   }

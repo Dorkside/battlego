@@ -15,22 +15,11 @@ export class Game extends Scene {
     super('Game')
   }
 
-  preload() {
-    // chargement tuiles de jeu
-    // this.load.image('floors', 'assets/floors.png')
-    // chargement de la carte
-    // this.load.tilemapTiledJSON('floors', 'assets/base.json')
-  }
+  preload() {}
 
   create() {
-    // Create a tile sprite that repeats the selected tile across the background
-    const background = this.add.tilemap('floors')
-    const tileset = background.addTilesetImage('floors', 'floors')
-
     this.offsetX = (this.sys.game.config.width - this.gridSize * this.cellSize) / 2
     this.offsetY = (this.sys.game.config.height - this.gridSize * this.cellSize) / 2
-
-    this.layer = background.createLayer('Tile Layer 1', tileset, 0, 0)
 
     this.graphics = this.add.graphics()
     this.gridState = Array(this.gridSize)
@@ -49,8 +38,12 @@ export class Game extends Scene {
     })
 
     EventBus.on('game-over', () => {
-      console.log('Game Over')
       this.gameOver = true
+      this.render()
+    })
+
+    EventBus.on('new-game', () => {
+      this.gameOver = false
       this.render()
     })
 
@@ -159,20 +152,6 @@ export class Game extends Scene {
     }
   }
 
-  drawPlayerTurn() {
-    this.add
-      .text(240, 20, `${this.currentPlayer}'s turn`, {
-        fontFamily: 'Helvetica',
-        fontSize: 24,
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 4,
-        align: 'center'
-      })
-      .setOrigin(0.5)
-      .setDepth(100)
-  }
-
   drawScore() {
     let blackScore = 0
     let whiteScore = 0
@@ -232,17 +211,8 @@ export class Game extends Scene {
     if (blackScore !== whiteScore) {
       winner = blackScore > whiteScore ? 'Black' : 'White'
     }
-    this.add
-      .text(240, 240, `${winner} wins`, {
-        fontFamily: 'Helvetica',
-        fontSize: 64,
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 8,
-        align: 'center'
-      })
-      .setOrigin(0.5)
-      .setDepth(100)
+
+    EventBus.emit('game-winner', winner)
   }
 
   drawHover() {

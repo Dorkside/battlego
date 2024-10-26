@@ -13,7 +13,9 @@ export const useGameState = defineStore('gameState', {
     currentPlayer: 'black',
     whiteCaptured: 0,
     blackCaptured: 0,
-    boardStates: [] // will be used to avoid Ko rule
+    boardStates: [], // will be used to avoid Ko rule
+    whiteVictories: 0,
+    blackVictories: 0
   }),
   actions: {
     updateGridState(x, y, value) {
@@ -21,6 +23,18 @@ export const useGameState = defineStore('gameState', {
         throw new Error('Invalid value')
       }
       this.gridState[y][x] = value
+      this.boardStates.push(
+        this.gridState.map((row) => row.map((cell) => cell ?? ' ').join('')).join('')
+      )
+      this.boardStates = this.boardStates.slice(-2)
+      EventBus.emit('current-grid-state', {
+        gridState: this.gridState,
+        hoveredCell: null
+      })
+    },
+    revertGridState() {
+      this.boardStates.pop()
+      this.gridState = this.boardStates[this.boardStates.length - 1]
       EventBus.emit('current-grid-state', {
         gridState: this.gridState,
         hoveredCell: null
@@ -77,6 +91,22 @@ export const useGameState = defineStore('gameState', {
         gridState: this.gridState,
         hoveredCell: null
       })
+    },
+    updateVictories(winner) {
+      if (winner === 'white') {
+        this.whiteVictories++
+      } else {
+        this.blackVictories++
+      }
+    },
+    newGame() {
+      this.gridState = Array(5)
+        .fill(null)
+        .map(() => Array(5).fill(null))
+      this.currentPlayer = 'black'
+      this.whiteCaptured = 0
+      this.blackCaptured = 0
+      this.boardStates = []
     }
   },
   getters: {
@@ -120,6 +150,7 @@ export const useGameState = defineStore('gameState', {
           possibleMoves[y][x] = checkPossibleMoves(
             state.gridState,
             state.libertiesState,
+            state.boardStates,
             x,
             y,
             'white'
@@ -139,6 +170,7 @@ export const useGameState = defineStore('gameState', {
           possibleMoves[y][x] = checkPossibleMoves(
             state.gridState,
             state.libertiesState,
+            state.boardStates,
             x,
             y,
             'black'

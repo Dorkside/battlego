@@ -15,7 +15,7 @@ window.play = (x, y) => {
 window.testGame = () => {
     setTimeout(() => {
         window.testGameLoop()
-    }, 100)
+    }, 1)
 }
 
 window.testGameLoop = (step) => {
@@ -28,7 +28,7 @@ window.testGameLoop = (step) => {
                 window.testGameLoop(0)
             }
         }
-    }, step ?? 100)
+    }, step ?? 1)
 }
 
 // check for win conditions
@@ -63,6 +63,7 @@ const resolveAction = (action) => {
         }
 
         state.updateGridState(action.x, action.y, state.currentPlayer)
+
         const opponent = state.currentPlayer === 'white' ? 'black' : 'white'
         state.removeDeadGroups(opponent, action)
         return true
@@ -88,6 +89,20 @@ onMounted(() => {
     EventBus.on('player-hover', (cell) => {
         state.updateHoverState(cell)
     })
+
+    EventBus.on('game-winner', (winner) => {
+        console.log('game-winner', winner)
+        state.updateVictories(winner.toLowerCase())
+        setTimeout(() => {
+            state.newGame()
+            EventBus.emit('new-game')
+        }, 1)
+    })
+
+    EventBus.on('new-game', () => {
+        gameOver.value = false
+        window.testGameLoop()
+    })
 })
 
 onUnmounted(() => {
@@ -105,6 +120,7 @@ defineExpose({ scene, game })
     <!-- considering #game-container is a 480x480px container for the graphics of the game, the rest here is just static ui elements -->
     <div class="ui">
         <div class="player-info">
+            Captured:
             <div class="player white">
                 <span>White</span>
                 <span>{{ state.whiteCaptured }}</span>
@@ -112,6 +128,17 @@ defineExpose({ scene, game })
             <div class="player black">
                 <span>Black</span>
                 <span>{{ state.blackCaptured }}</span>
+            </div>
+        </div>
+        <div class="player-info">
+            Victories:
+            <div class="player white">
+                <span>White</span>
+                <span>{{ state.whiteVictories }}</span>
+            </div>
+            <div class="player black">
+                <span>Black</span>
+                <span>{{ state.blackVictories }}</span>
             </div>
         </div>
     </div>
