@@ -17,13 +17,19 @@ window.testGame = () => {
     setTimeout(() => {
         if (!state.gameOver) {
             try {
-                window.play(Math.floor(Math.random() * 5), Math.floor(Math.random() * 5))
+                const possibleMoves = state.currentPlayer === 'white' ? state.whitePossibleMoves : state.blackPossibleMoves
+                const possibleMoveList = possibleMoves.flatMap((row, y) => row.map((cell, x) => cell ? { x, y } : null).filter(Boolean))
+                const randomMove = possibleMoveList[Math.floor(Math.random() * possibleMoveList.length)]
+                window.play(randomMove.x, randomMove.y)
                 window.testGame()
             } catch (e) {
                 window.testGame()
             }
+        } else {
+            state.newGame()
+            window.testGame()
         }
-    }, 1)
+    }, 0)
 }
 
 // check for win conditions
@@ -41,11 +47,8 @@ watch(() => state.blackPossibleMoves, (newValue) => {
 watch(() => state.gameOver, (newValue) => {
     if (newValue) {
         const winner = state.whiteScore > state.blackScore ? 'white' : 'black'
-        console.log('winner', winner)
+        console.log("White:", state.whiteScore, "Black:", state.blackScore)
         state.updateVictories(winner)
-        if (test) {
-            state.newGame()
-        }
     }
 })
 
