@@ -6,42 +6,46 @@ import { useGameState } from '../stores/gameState'
 
 const state = useGameState()
 
-let gameOver = ref(false)
+let test = reactive(false);
 
 window.play = (x, y) => {
     EventBus.emit('player-action', { action: { x, y } })
 }
 
 window.testGame = () => {
+    test = true;
     setTimeout(() => {
-        window.testGameLoop()
-    }, 1)
-}
-
-window.testGameLoop = (step) => {
-    setTimeout(() => {
-        if (!gameOver.value) {
+        if (!state.gameOver) {
             try {
                 window.play(Math.floor(Math.random() * 5), Math.floor(Math.random() * 5))
-                window.testGameLoop(100)
+                window.testGame()
             } catch (e) {
-                window.testGameLoop(0)
+                window.testGame()
             }
         }
-    }, step ?? 1)
+    }, 1)
 }
 
 // check for win conditions
 watch(() => state.whitePossibleMoves, (newValue) => {
     if (newValue.every(row => row.every(cell => !cell))) {
-        EventBus.emit('game-over')
-        gameOver.value = true
+        state.gameOver = true
     }
 })
 watch(() => state.blackPossibleMoves, (newValue) => {
     if (newValue.every(row => row.every(cell => !cell))) {
-        EventBus.emit('game-over')
-        gameOver.value = true
+        state.gameOver = true
+    }
+})
+
+watch(() => state.gameOver, (newValue) => {
+    if (newValue) {
+        const winner = state.whiteScore > state.blackScore ? 'white' : 'black'
+        console.log('winner', winner)
+        state.updateVictories(winner)
+        if (test) {
+            state.newGame()
+        }
     }
 })
 
@@ -89,20 +93,6 @@ onMounted(() => {
     EventBus.on('player-hover', (cell) => {
         state.updateHoverState(cell)
     })
-
-    EventBus.on('game-winner', (winner) => {
-        console.log('game-winner', winner)
-        state.updateVictories(winner.toLowerCase())
-        setTimeout(() => {
-            state.newGame()
-            EventBus.emit('new-game')
-        }, 1)
-    })
-
-    EventBus.on('new-game', () => {
-        gameOver.value = false
-        window.testGameLoop()
-    })
 })
 
 onUnmounted(() => {
@@ -131,6 +121,17 @@ defineExpose({ scene, game })
             </div>
         </div>
         <div class="player-info">
+            Score:
+            <div class="player white">
+                <span>White</span>
+                <span>{{ state.whiteScore }}</span>
+            </div>
+            <div class="player black">
+                <span>Black</span>
+                <span>{{ state.blackScore }}</span>
+            </div>
+        </div>
+        <div class="player-info">
             Victories:
             <div class="player white">
                 <span>White</span>
@@ -154,6 +155,7 @@ defineExpose({ scene, game })
 
 .ui {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     padding: 10px;
     position: absolute;

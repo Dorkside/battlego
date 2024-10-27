@@ -1,5 +1,6 @@
 import { EventBus } from '../EventBus'
 import { Scene } from 'phaser'
+import { useGameState } from '../../stores/gameState'
 
 export class Game extends Scene {
   gridSize = 5
@@ -8,8 +9,8 @@ export class Game extends Scene {
   offsetY = 0
   borderThickness = 2
   borderColor = 0xffffff
-  currentPlayer = 'black'
-  gameOver = false
+
+  state = useGameState()
 
   constructor() {
     super('Game')
@@ -33,35 +34,21 @@ export class Game extends Scene {
     EventBus.on('current-grid-state', ({ gridState, hoveredCell }) => {
       this.gridState = gridState
       this.hoveredCell = hoveredCell
-
-      this.render()
-    })
-
-    EventBus.on('game-over', () => {
-      this.gameOver = true
-      this.render()
-    })
-
-    EventBus.on('new-game', () => {
-      this.gameOver = false
-      this.render()
     })
 
     EventBus.emit('current-scene-ready', this)
-
-    EventBus.on('turn-switched', (player) => {
-      this.currentPlayer = player
-    })
   }
 
   // following is the draw call for each frame
-  update() {}
+  update() {
+    this.render()
+  }
 
   render() {
     this.graphics.clear()
     this.drawGrid()
     this.drawState()
-    if (!this.gameOver) {
+    if (!this.state.gameOver) {
       this.drawHover()
     } else {
       this.drawScore()
@@ -153,8 +140,6 @@ export class Game extends Scene {
   }
 
   drawScore() {
-    let blackScore = 0
-    let whiteScore = 0
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
         const x = this.offsetX + j * this.cellSize
@@ -164,10 +149,8 @@ export class Game extends Scene {
 
         if (this.gridState[i][j] === 'black') {
           this.graphics.fillStyle(0x000000, 1)
-          blackScore++
         } else if (this.gridState[i][j] === 'white') {
           this.graphics.fillStyle(0xffffff, 1)
-          whiteScore++
         } else {
           // check if the cell has the most black or white neighbours
           let neighbours = []
@@ -195,30 +178,21 @@ export class Game extends Scene {
 
           if (result > 0) {
             this.graphics.fillStyle(0x000000, 1)
-            blackScore++
           }
           if (result < 0) {
             this.graphics.fillStyle(0xffffff, 1)
-            whiteScore++
           }
         }
 
         this.graphics.fillRect(x, y, this.cellSize, this.cellSize)
       }
     }
-
-    let winner = 'Nobody'
-    if (blackScore !== whiteScore) {
-      winner = blackScore > whiteScore ? 'Black' : 'White'
-    }
-
-    EventBus.emit('game-winner', winner)
   }
 
   drawHover() {
     if (this.hoveredCell) {
       const { x, y } = this.hoveredCell
-      if (this.currentPlayer === 'black') {
+      if (this.state.currentPlayer === 'black') {
         this.graphics.fillStyle(0xffffff, 0.5)
         this.graphics.fillCircle(
           this.offsetX + x * this.cellSize + this.cellSize / 2,
@@ -231,7 +205,7 @@ export class Game extends Scene {
           this.offsetY + y * this.cellSize + this.cellSize / 2,
           this.cellSize / 4
         )
-      } else if (this.currentPlayer === 'white') {
+      } else if (this.state.currentPlayer === 'white') {
         this.graphics.fillStyle(0xffffff, 0.5)
         this.graphics.fillCircle(
           this.offsetX + x * this.cellSize + this.cellSize / 2,

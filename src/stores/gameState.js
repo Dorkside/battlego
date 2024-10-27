@@ -15,7 +15,8 @@ export const useGameState = defineStore('gameState', {
     blackCaptured: 0,
     boardStates: [], // will be used to avoid Ko rule
     whiteVictories: 0,
-    blackVictories: 0
+    blackVictories: 0,
+    gameOver: false
   }),
   actions: {
     updateGridState(x, y, value) {
@@ -45,7 +46,6 @@ export const useGameState = defineStore('gameState', {
         throw new Error('Invalid player')
       }
       this.currentPlayer = player
-      EventBus.emit('turn-switched', player)
     },
     updateHoverState(cell) {
       let canHover = false
@@ -103,6 +103,7 @@ export const useGameState = defineStore('gameState', {
       this.gridState = Array(5)
         .fill(null)
         .map(() => Array(5).fill(null))
+      this.gameOver = false
       this.currentPlayer = 'black'
       this.whiteCaptured = 0
       this.blackCaptured = 0
@@ -179,6 +180,100 @@ export const useGameState = defineStore('gameState', {
       }
 
       return possibleMoves
+    },
+    blackScore: (state) => {
+      let blackScore = 0
+      let whiteScore = 0
+
+      for (let i = 0; i < state.gridState.length; i++) {
+        for (let j = 0; j < state.gridState[i].length; j++) {
+          if (state.gridState[i][j] === 'black') {
+            blackScore++
+          } else if (state.gridState[i][j] === 'white') {
+            whiteScore++
+          } else {
+            // check if the cell has the most black or white neighbours
+            let neighbours = []
+
+            if (i > 0 && state.gridState[i - 1][j] !== null) {
+              neighbours.push(state.gridState[i - 1][j])
+            }
+            if (i < 4 && state.gridState[i + 1][j] !== null) {
+              neighbours.push(state.gridState[i + 1][j])
+            }
+            if (j > 0 && state.gridState[i][j - 1] !== null) {
+              neighbours.push(state.gridState[i][j - 1])
+            }
+            if (j < 4 && state.gridState[i][j + 1] !== null) {
+              neighbours.push(state.gridState[i][j + 1])
+            }
+
+            const result = neighbours
+              .map((cell) => {
+                if (cell === 'black') return 1
+                if (cell === 'white') return -1
+                return 0
+              })
+              .reduce((acc, curr) => acc + curr, 0)
+
+            if (result > 0) {
+              blackScore++
+            }
+            if (result < 0) {
+              whiteScore++
+            }
+          }
+        }
+      }
+
+      return blackScore
+    },
+    whiteScore: (state) => {
+      let blackScore = 0
+      let whiteScore = 0
+
+      for (let i = 0; i < state.gridState.length; i++) {
+        for (let j = 0; j < state.gridState[i].length; j++) {
+          if (state.gridState[i][j] === 'black') {
+            blackScore++
+          } else if (state.gridState[i][j] === 'white') {
+            whiteScore++
+          } else {
+            // check if the cell has the most black or white neighbours
+            let neighbours = []
+
+            if (i > 0 && state.gridState[i - 1][j] !== null) {
+              neighbours.push(state.gridState[i - 1][j])
+            }
+            if (i < 4 && state.gridState[i + 1][j] !== null) {
+              neighbours.push(state.gridState[i + 1][j])
+            }
+            if (j > 0 && state.gridState[i][j - 1] !== null) {
+              neighbours.push(state.gridState[i][j - 1])
+            }
+            if (j < 4 && state.gridState[i][j + 1] !== null) {
+              neighbours.push(state.gridState[i][j + 1])
+            }
+
+            const result = neighbours
+              .map((cell) => {
+                if (cell === 'black') return 1
+                if (cell === 'white') return -1
+                return 0
+              })
+              .reduce((acc, curr) => acc + curr, 0)
+
+            if (result > 0) {
+              blackScore++
+            }
+            if (result < 0) {
+              whiteScore++
+            }
+          }
+        }
+      }
+
+      return whiteScore
     }
   }
 })
