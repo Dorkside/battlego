@@ -1,8 +1,9 @@
 import { findGroup, getGroupLiberties } from './'
+import { boardSize } from './constants'
 
 export const checkPossibleMoves = (gridState, libertiesState, boardStates, x, y, p) => {
   // Checkl if the cell is in bounds
-  if (x < 0 || x >= 5 || y < 0 || y >= 5) {
+  if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
     return false
   }
   // Check if the cell is empty
@@ -10,9 +11,9 @@ export const checkPossibleMoves = (gridState, libertiesState, boardStates, x, y,
     // Check if the cell has one adjacent empty cell
     if (
       (y > 0 && gridState[y - 1][x] === null) ||
-      (y < 4 && gridState[y + 1][x] === null) ||
+      (y < boardSize - 1 && gridState[y + 1][x] === null) ||
       (x > 0 && gridState[y][x - 1] === null) ||
-      (x < 4 && gridState[y][x + 1] === null)
+      (x < boardSize - 1 && gridState[y][x + 1] === null)
     ) {
       return true
     }

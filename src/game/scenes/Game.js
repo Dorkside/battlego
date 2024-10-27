@@ -1,9 +1,9 @@
 import { EventBus } from '../EventBus'
 import { Scene } from 'phaser'
 import { useGameState } from '../../stores/gameState'
-
+import { boardSize } from '../../shared/constants'
 export class Game extends Scene {
-  gridSize = 5
+  gridSize = boardSize
   cellSize = 32
   offsetX = 0
   offsetY = 0
@@ -158,13 +158,13 @@ export class Game extends Scene {
           if (i > 0 && this.gridState[i - 1][j] !== null) {
             neighbours.push(this.gridState[i - 1][j])
           }
-          if (i < 4 && this.gridState[i + 1][j] !== null) {
+          if (i < boardSize - 1 && this.gridState[i + 1][j] !== null) {
             neighbours.push(this.gridState[i + 1][j])
           }
           if (j > 0 && this.gridState[i][j - 1] !== null) {
             neighbours.push(this.gridState[i][j - 1])
           }
-          if (j < 4 && this.gridState[i][j + 1] !== null) {
+          if (j < boardSize - 1 && this.gridState[i][j + 1] !== null) {
             neighbours.push(this.gridState[i][j + 1])
           }
 

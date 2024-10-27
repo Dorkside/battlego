@@ -1,6 +1,8 @@
+import { boardSize } from './constants'
+
 // Depth-first search to find the group of cells that are connected
 export const dfs = (gridState, x, y, visited, group, player) => {
-  if (x < 0 || x >= 5 || y < 0 || y >= 5) {
+  if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
     return
   }
   if (visited[y][x]) {

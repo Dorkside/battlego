@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import { checkPossibleMoves, findGroup, getGroupLiberties } from '../shared'
 import { EventBus } from '../game/EventBus'
+import { boardSize } from '../shared/constants'
 
 export const useGameState = defineStore('gameState', {
   state: () => ({
     // following grid contains the current state of the game
     // null means empty, 'white' means white player, 'black' means black player
-    gridState: Array(5)
+    gridState: Array(boardSize)
       .fill(null)
-      .map(() => Array(5).fill(null)),
+      .map(() => Array(boardSize).fill(null)),
     hoveredCell: null,
     currentPlayer: 'black',
     whiteCaptured: 0,
@@ -100,9 +101,9 @@ export const useGameState = defineStore('gameState', {
       }
     },
     newGame() {
-      this.gridState = Array(5)
+      this.gridState = Array(boardSize)
         .fill(null)
-        .map(() => Array(5).fill(null))
+        .map(() => Array(boardSize).fill(null))
       this.gameOver = false
       this.currentPlayer = 'black'
       this.whiteCaptured = 0
@@ -114,24 +115,24 @@ export const useGameState = defineStore('gameState', {
     // following grid contains the current state of the immediate
     // liberties of each cell
     libertiesState: (state) => {
-      const liberties = Array(5)
+      const liberties = Array(boardSize)
         .fill(null)
-        .map(() => Array(5).fill([]))
+        .map(() => Array(boardSize).fill([]))
 
-      for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < boardSize; y++) {
+        for (let x = 0; x < boardSize; x++) {
           let libertiesItems = []
           if (state.gridState[y][x] !== null) {
             if (y > 0 && state.gridState[y - 1][x] === null) {
               libertiesItems.push(`${y - 1},${x}`)
             }
-            if (y < 4 && state.gridState[y + 1][x] === null) {
+            if (y < boardSize - 1 && state.gridState[y + 1][x] === null) {
               libertiesItems.push(`${y + 1},${x}`)
             }
             if (x > 0 && state.gridState[y][x - 1] === null) {
               libertiesItems.push(`${y},${x - 1}`)
             }
-            if (x < 4 && state.gridState[y][x + 1] === null) {
+            if (x < boardSize - 1 && state.gridState[y][x + 1] === null) {
               libertiesItems.push(`${y},${x + 1}`)
             }
             liberties[y][x] = libertiesItems
@@ -142,12 +143,12 @@ export const useGameState = defineStore('gameState', {
       return liberties
     },
     whitePossibleMoves: (state) => {
-      const possibleMoves = Array(5)
+      const possibleMoves = Array(boardSize)
         .fill(null)
-        .map(() => Array(5).fill(false))
+        .map(() => Array(boardSize).fill(false))
 
-      for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < boardSize; y++) {
+        for (let x = 0; x < boardSize; x++) {
           possibleMoves[y][x] = checkPossibleMoves(
             state.gridState,
             state.libertiesState,
@@ -162,12 +163,12 @@ export const useGameState = defineStore('gameState', {
       return possibleMoves
     },
     blackPossibleMoves: (state) => {
-      const possibleMoves = Array(5)
+      const possibleMoves = Array(boardSize)
         .fill(null)
-        .map(() => Array(5).fill(false))
+        .map(() => Array(boardSize).fill(false))
 
-      for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < boardSize; y++) {
+        for (let x = 0; x < boardSize; x++) {
           possibleMoves[y][x] = checkPossibleMoves(
             state.gridState,
             state.libertiesState,
@@ -198,13 +199,13 @@ export const useGameState = defineStore('gameState', {
             if (i > 0 && state.gridState[i - 1][j] !== null) {
               neighbours.push(state.gridState[i - 1][j])
             }
-            if (i < 4 && state.gridState[i + 1][j] !== null) {
+            if (i < boardSize - 1 && state.gridState[i + 1][j] !== null) {
               neighbours.push(state.gridState[i + 1][j])
             }
             if (j > 0 && state.gridState[i][j - 1] !== null) {
               neighbours.push(state.gridState[i][j - 1])
             }
-            if (j < 4 && state.gridState[i][j + 1] !== null) {
+            if (j < boardSize - 1 && state.gridState[i][j + 1] !== null) {
               neighbours.push(state.gridState[i][j + 1])
             }
 
@@ -245,13 +246,13 @@ export const useGameState = defineStore('gameState', {
             if (i > 0 && state.gridState[i - 1][j] !== null) {
               neighbours.push(state.gridState[i - 1][j])
             }
-            if (i < 4 && state.gridState[i + 1][j] !== null) {
+            if (i < boardSize - 1 && state.gridState[i + 1][j] !== null) {
               neighbours.push(state.gridState[i + 1][j])
             }
             if (j > 0 && state.gridState[i][j - 1] !== null) {
               neighbours.push(state.gridState[i][j - 1])
             }
-            if (j < 4 && state.gridState[i][j + 1] !== null) {
+            if (j < boardSize - 1 && state.gridState[i][j + 1] !== null) {
               neighbours.push(state.gridState[i][j + 1])
             }
 
