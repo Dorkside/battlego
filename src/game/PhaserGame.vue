@@ -150,8 +150,8 @@ defineExpose({ scene, game })
 
 <style scoped>
 #game-container {
-    width: 480px;
-    height: 480px;
+    width: 640px;
+    height: 640px;
     position: relative;
     border: solid 2px white;
 }

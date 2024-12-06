@@ -90,14 +90,14 @@ export class Game extends Scene {
     for (let i = 0; i <= this.gridSize - 1; i++) {
       const y = this.offsetY + i * this.cellSize + this.cellSize / 2
       this.graphics.moveTo(0, y)
-      this.graphics.lineTo(480, y)
+      this.graphics.lineTo(640, y)
     }
 
     // Draw vertical lines
     for (let j = 0; j <= this.gridSize - 1; j++) {
       const x = this.offsetX + j * this.cellSize + this.cellSize / 2
       this.graphics.moveTo(x, 0)
-      this.graphics.lineTo(x, 480)
+      this.graphics.lineTo(x, 640)
     }
 
     this.graphics.strokePath()
